@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css">
+    <title>Metadatum Obscura</title>
+    <style type="text/css">
+        .dropdown-menu {
+            max-width: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="login">
+            <a href="/login" class="btn btn-primary">Log in</a>
+        </div>
+        <div id="loggedin">
+            <div class="btn-group float-right">
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    User Info
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <div id="user-profile">
+                    </div>
+                    <div id="oauth">
+                    </div>
+                    <button class="btn btn-secondary" id="obtain-new-token">New Token</button>
+                </div>
+            </div>
+            <h1>Query Test</h1>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Query Type</label>
+                </div>
+                <select class="custom-select" id="inputGroupSelect01">
+                    <option selected>Choose a type</option>
+                    <option value="track">Track</option>
+                    <option value="tracks">Tracks</option>
+                    <option value="artist">Artist</option>
+                    <option value="album">Album</option>
+                    <option value="playlistInfo">Playlist</option>
+                    <option value="playlists">Playlists</option>
+                    <option value="features">Track Features</option>
+                </select>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="spotify-id" placeholder="Spotify ID" aria-label="Spotiy ID" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button" id="execute-query">Lookup</button>
+                </div>
+            </div>
+            <div id="resultsHeader">
+            </div>
+            <div id="results">
+            </div>
+            <p id="test" font-size="10px"></p>
+        </div>
+    </div>
+
+    <script id="user-profile-template" type="text/x-handlebars-template">
+        <h1>Logged in as {{display_name}}</h1>
+        <div class="media">
+          <div class="pull-left">
+            <img class="media-object" width="150" src="{{images.0.url}}" />
+          </div>
+          <div class="media-body">
+            <dl class="dl-horizontal">
+              <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
+              <dt>Id</dt><dd id="userid">{{id}}</dd>
+              <dt>Email</dt><dd>{{email}}</dd>
+              <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
+              <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
+              <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
+              <dt>Country</dt><dd id="country">{{country}}</dd>
+            </dl>
+          </div>
+        </div>
+    </script>
+
+    <script id="oauth-template" type="text/x-handlebars-template">
+        <h2>oAuth Info</h2>
+        <dl class="dl-horizontal">
+          <dt>Access token</dt><dd class="text-overflow" id="token">{{access_token}}</dd>
+          <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
+        </dl>
+    </script>
+
+    <script id="track-template" type="text/x-handlebars-template">
+        <h2>Track Info</h2>
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Art</th>
+                    <th>Name</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th>Duration</th>
+                    <th>ID</th>
+                    <th>Popularity</th>
+                </tr>
+            </thead>
+            <tbody>
+                    <tr>
+                        <td><img class="someClass" src="{{img}}"></td>
+                        <td>{{name}}</td>
+                        <td>{{artist}}</td>
+                        <td>{{album}}</td>
+                        <td>{{time duration_ms}}</td>
+                        <td>{{id}}</td>
+                        <td>{{popularity}}</td>
+                    </tr>
+            </tbody>
+        </table>
+    </script>
+
+    <script id="tracks-template" type="text/x-handlebars-template">
+        <h2>Track Info</h2>
+        <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Art</th>
+                        <th>Name</th>
+                        <th>Artist</th>
+                        <th>Album</th>
+                        <th>Duration</th>
+                        <th>Popularity</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        {{#each objects}}
+                        <tr>
+                            <td>
+                                <img src="{{album.images.[2].url}}">
+                            </td>
+                            <td>{{name}}</td>
+                            <td>
+                                {{#each artists}}
+                                    {{this.name}}
+                                {{/each}}
+                            </td>
+                            <td>
+                                {{album.name}}
+                            </td>
+                            <td>{{time duration_ms}}</td>
+                            <td>{{popularity}}</td>
+                            <td>
+                                <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">{{id}}</button>
+                            </td>
+                        </tr>
+                        {{/each}}
+                </tbody>
+            </table>
+    </script>
+
+    <script id="artist-template" type="text/x-handlebars-template">
+        <h2>Artist Info</h2>
+                <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Genres</th>
+                        <th>Popularity</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{name}}</td>
+                        <td>
+                            {{#each genres}}
+                                {{this}}
+                            {{/each}}
+                        </td>
+                        <td>{{popularity}}</td>
+                        <td>
+                            <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">{{id}}</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        <dl class="dl-horizontal">
+        </dl>
+    </script>
+
+    <script id="album-template" type="text/x-handlebars-template">
+        <h2>Album Info</h2>
+        <dl class="dl-horizontal">
+            <dt>Name</dt><dd class="text-overflow">{{name}}</dd>
+        </dl>
+    </script>
+
+    <script id="playlists-template" type="text/x-handlebars-template">
+        <h2>Playlists</h2>
+        <dl class="dl-horizontal">
+            <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            {{#each objects}}
+                            <tr>
+                                <td>
+                                    {{name}}
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" type="button" value="{{id}}:{{owner.id}}" onclick="lookUpId({value})">{{id}}</button>
+                                </td>
+                            </tr>
+                            {{/each}}
+                    </tbody>
+                </table>
+        </dl>
+    </script>
+
+    <script id="playlistInfo-template" type="text/x-handlebars-template">
+        <h2>Playlist Info</h2>
+        <dt>Name</dt><dd class="text-overflow">{{name}}</dd>
+        <dt>Owner</dt><dd class="text-overflow">{{owner}}</dd>
+        <dt>Description</dt><dd class="text-overflow">{{description}}</dd>
+    </script>
+
+    <script id="playlistTracks-template" type="text/x-handlebars-template">
+        <h2>Playlist Tracks</h2>
+        <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Artist</th>
+                        <th>Album</th>
+                        <th>Duration</th>
+                        <th>Popularity</th>
+                        <th>ID</th>
+                        <th>Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        {{#each objects}}
+                        <tr>
+                            <td>{{track.name}}</td>
+                            <td>
+                                {{#each track.artists}}
+                                    {{this.name}}
+                                {{/each}}
+                            </td>
+                            <td>
+                                {{track.album.name}}
+                            </td>
+                            <td>{{time track.duration_ms}}</td>
+                            <td>{{track.popularity}}</td>
+                            <td>
+                                <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">{{track.id}}</button>
+                            </td>
+                            <td>{{added_at}}</td>
+                        </tr>
+                        {{/each}}
+                </tbody>
+            </table>
+    </script>
+
+    <script id="features-template" type="text/x-handlebars-template">
+        <h2>Track Features</h2>
+        <dl class="dl-horizontal">
+            <dt>Acousticness</dt><dd class="text-overflow">{{acousticness}}</dd>
+            <dt>Danceability</dt><dd class="text-overflow">{{danceability}}</dd>
+            <dt>Duration</dt><dd class="text-overflow">{{time duration_ms}}</dd>
+            <dt>Energy</dt><dd class="text-overflow">{{energy}}</dd>
+            <dt>Instrumentalness</dt><dd class="text-overflow">{{instrumentalness}}</dd>
+            <dt>Key</dt><dd class="text-overflow">{{key}}</dd>
+            <dt>Liveness</dt><dd class="text-overflow">{{liveness}}</dd>
+            <dt>Loudness</dt><dd class="text-overflow">{{loudness}}</dd>
+            <dt>Mode</dt><dd class="text-overflow">{{mode}}</dd>
+            <dt>Speechiness</dt><dd class="text-overflow">{{speechiness}}</dd>
+            <dt>Tempo</dt><dd class="text-overflow">{{tempo}}</dd>
+            <dt>Time Signature</dt><dd class="text-overflow">{{time_signature}}</dd>
+            <dt>Valence</dt><dd class="text-overflow">{{valence}}</dd>
+        </dl>
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+    <script src="auth.js"></script>
+    <script type='text/javascript'>
+        var userid, token, country;
+    </script>
+    <script src="api.js"></script>
+</body>
+
+</html>

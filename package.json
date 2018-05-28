@@ -1,0 +1,12 @@
+{
+  "author": "jtvberg",
+  "name": "metadatum-obscura",
+  "description": "spotify web api query tool",
+  "version": "0.1.0",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.3",
+    "querystring": "^0.2.0",
+    "request": "^2.83.0"
+  }
+}
