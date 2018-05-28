@@ -9,6 +9,8 @@ To do this you will need to create an app here: `https://beta.developer.spotify.
 That will allow you to generate a 'Client ID' and a 'Client Secret'. Be sure also to set a callback URI.
 This file needs to export your keys labeled as in the example below (do this however you want):
 
+*keys.js*
+
     module.exports = Object.freeze({
         client_id: 'yourClientIdHere',
         client_secret: 'yourClientSecretHere',
