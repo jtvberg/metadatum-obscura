@@ -1,14 +1,21 @@
 //Event listener to execute API call on click
 //Track ids injected for testing if no value entered
+
 document.getElementById('execute-query').addEventListener('click', function () {
     var type = document.getElementById('inputGroupSelect01').value;
     var id = !document.getElementById('spotify-id').value ? '14KlyPJREBjS02AiIXCIqk%2C2LUGAmTUIgFyHPVWmFRzvw' : multiId(document.getElementById('spotify-id').value);
-    runQuery(buildUrl(type, id, userid), type);
+    if(id.includes(":")) {
+        var ids = id.split(":");
+        id = ids[0];
+        uid = ids[1];
+    } else {
+        uid = userid;
+    }
+    runQuery(buildUrl(type, id, uid), type);
 });
 
 //Build the API URL
 function buildUrl(type, id, uid) {
-    uid = 'spotify'; //this is a test override while I figure out how I want to handle the playlist ownership
     var url = "https://api.spotify.com/v1/";
     switch (type) {
         case 'track':
@@ -23,9 +30,8 @@ function buildUrl(type, id, uid) {
         case 'album':
             url += `albums/${id}?market=${country}`;
             break;
-        case 'playlists': //me can be problematic when looking up playist info for other owners
+        case 'playlists':
             url += `users/${uid}/playlists`
-            //url += 'me/playlists';
             break;
         case 'playlistInfo':
             url += `users/${uid}/playlists/${id}`

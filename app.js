@@ -1,7 +1,7 @@
 var express = require('express'); //Express web server framework
 var request = require('request'); //http Request library
 var querystring = require('querystring'); //node querystring module
-var cookieParser = require('cookie-parser'); //
+var cookieParser = require('cookie-parser'); //Cookie management
 var keys = require('./keys'); //Imports key variables, consult README
 
 //Generates a random string of characters
