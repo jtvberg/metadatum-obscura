@@ -21,6 +21,9 @@ function buildUrl(type, id, uid) {
         case 'track':
             url += `tracks/${id}?market=${country}`;
             break;
+        case 'features':
+            url += `audio-features/${id}`
+            break;
         case 'tracks':
             url += `tracks?ids=${id}&market=${country}`;
             break;
@@ -39,14 +42,16 @@ function buildUrl(type, id, uid) {
         case 'playlistTracks':
             url += `users/${uid}/playlists/${id}/tracks`
             break;
-        case 'features':
-            url += `audio-features/${id}`
+        case 'libTracks':
+            url += `me/tracks`
+            break;
+        case 'libAlbums':
+            url += `me/albums`
             break;
         default:
             url += `tracks?ids=${id}&market=${country}`;
             break;
     }
-    console.log(url);
     return url;
 }
 
@@ -57,6 +62,7 @@ function multiId(input) {
 
 //Hit Spotify API and return data object
 function runQuery(url, type) {
+    console.log(url);
     return fetch(url, {
         method: 'GET',
         headers: {
@@ -70,15 +76,15 @@ function runQuery(url, type) {
         })
         .then(function (data) {
             var data_obj = JSON.parse(data);
+            console.log(data_obj);
             parseObj(data_obj, type);
             return data_obj;
         })
 }
 
+var next, tracks, playlists, playlistTracks, libTracks;
 //Parse data object into handlebars template
 function parseObj(obj, type) {
-    console.log(obj);
-    console.log(type);
 
     var placeholderHeader = document.getElementById('resultsHeader');
     var placeholder = document.getElementById('results');
@@ -98,50 +104,10 @@ function parseObj(obj, type) {
                 img: obj.album.images[2].url
             });
             placeholderHeader.innerHTML = '';
-            break;
-        case 'tracks':
-            source = $("#tracks-template").html();
-            template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ objects: obj.tracks });
-            placeholderHeader.innerHTML = '';
-            break;
-        case 'artist':
-            source = $("#artist-template").html();
-            template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ 
-                name: obj.name,
-                genres: obj.genres,
-                popularity: obj.popularity,
-                id: obj.id
-            });
-            placeholderHeader.innerHTML = '';
-            break;
-        case 'album':
-            source = $("#album-template").html();
-            template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ name: obj.name });
-            placeholderHeader.innerHTML = '';
-            break;
-        case 'playlistInfo':
-            source = $("#playlistInfo-template").html();
-            template = Handlebars.compile(source);
-            placeholderHeader.innerHTML = template({ 
-                name: obj.name,
-                description: obj.description,
-                owner: obj.owner.id
-            });
-            runQuery(buildUrl('playlistTracks', obj.id), 'playlistTracks');
-            break;
-        case 'playlistTracks':
-            source = $("#playlistTracks-template").html();
-            template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ objects: obj.items });
-            break;
-        case 'playlists':
-            source = $("#playlists-template").html();
-            template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ objects: obj.items });
-            placeholderHeader.innerHTML = '';
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
             break;
         case 'features':
             source = $("#features-template").html();
@@ -162,12 +128,125 @@ function parseObj(obj, type) {
                 valence: obj.valence
             });
             placeholderHeader.innerHTML = '';
-            break;
-        default: //set to tracks for testing
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
+            break
+        case 'tracks':
+            if(!tracks) {
+                tracks = obj.tracks;
+            } else {
+                for (i = 0; i < obj.tracks.length; i++) { 
+                    tracks.push(obj.tracks[i]);
+                }
+            }
             source = $("#tracks-template").html();
             template = Handlebars.compile(source);
-            placeholder.innerHTML = template({ objects: obj.tracks });
+            placeholder.innerHTML = template({ objects: tracks });
             placeholderHeader.innerHTML = '';
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
+            if (obj.next) {
+                runQuery(obj.next, type);
+            }
+            break;
+        case 'artist':
+            source = $("#artist-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ 
+                name: obj.name,
+                genres: obj.genres,
+                popularity: obj.popularity,
+                id: obj.id
+            });
+            placeholderHeader.innerHTML = '';
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
+            break;
+        case 'album':
+            source = $("#album-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ name: obj.name });
+            placeholderHeader.innerHTML = '';
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
+            break;
+        case 'playlists':
+            source = $("#playlists-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ objects: obj.items });
+            placeholderHeader.innerHTML = '';
+            tracks = null;
+            playlistTracks = null;
+            libTracks = null;
+            break;
+        case 'playlistInfo':
+            source = $("#playlistInfo-template").html();
+            template = Handlebars.compile(source);
+            placeholderHeader.innerHTML = template({ 
+                name: obj.name,
+                description: obj.description === '' ? 'NA' : obj.description,
+                owner: obj.owner.id,
+                tracks: obj.tracks.total
+            });
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
+            //runQuery(buildUrl('playlistTracks', obj.id), 'playlistTracks');
+        case 'playlistTracks':
+            if(!playlistTracks) {
+                playlistTracks = obj.tracks.items;
+                next = obj.tracks.next;
+            } else {
+                for (i = 0; i < obj.items.length; i++) { 
+                    playlistTracks.push(obj.items[i]);
+                }
+                next = obj.next;
+            }
+            source = $("#playlistTracks-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ objects: playlistTracks });
+            tracks = null;
+            playlists = null;
+            libTracks = null;
+            if (next) {
+                runQuery(next, 'playlistTracks');
+            }
+            break;
+        case 'libTracks':
+            if(!libTracks) {
+                libTracks = obj.items;
+            } else {
+                for (i = 0; i < obj.items.length; i++) { 
+                    libTracks.push(obj.items[i]);
+                }
+            }
+            source = $("#libTracks-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ objects: libTracks });
+            placeholderHeader.innerHTML = '';
+            tracks = null;
+            playlists = null;
+            playlistTracks = null;
+            if (obj.next) {
+                runQuery(obj.next, type);
+            }
+            break;
+        default: //set to tracks for testing
+;           source = $("#tracks-template").html();
+            template = Handlebars.compile(source);
+            placeholder.innerHTML = template({ objects: tracks });
+            placeholderHeader.innerHTML = '';
+            playlists = null;
+            playlistTracks = null;
+            libTracks = null;
             break;
     }
 }
@@ -184,4 +263,12 @@ Handlebars.registerHelper('time', function (millis) {
 //Attached to buttons to grab spotify id
 var lookUpId = (val) => {
     document.getElementById('spotify-id').value = val.value;
+}
+
+var playById = (val) => {
+    document.getElementById('player').src = "https://open.spotify.com/embed?uri=spotify:track:"+val.value;
+}
+
+var getPage = (val) => {
+    
 }

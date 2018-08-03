@@ -11,6 +11,20 @@
         .dropdown-menu {
             max-width: 400px;
         }
+        dt {
+            float: left;
+            clear: left;
+            width: 100px;
+            text-align: right;
+            font-weight: bold;
+        }
+        dt::after {
+            content: ":";
+        }
+        dd {
+            margin: 0 0 0 110px;
+            padding: 0 0 0.5em 0;
+        }
     </style>
 </head>
 
@@ -40,12 +54,13 @@
                 <select class="custom-select" id="inputGroupSelect01">
                     <option selected>Choose a type</option>
                     <option value="track">Track</option>
+                    <option value="features">Track Features</option>
                     <option value="tracks">Tracks</option>
                     <option value="artist">Artist</option>
                     <option value="album">Album</option>
                     <option value="playlistInfo">Playlist</option>
                     <option value="playlists">Playlists</option>
-                    <option value="features">Track Features</option>
+                    <option value="libTracks">Library Songs</option>
                 </select>
             </div>
             <div class="input-group mb-3">
@@ -102,6 +117,7 @@
                     <th>Duration</th>
                     <th>ID</th>
                     <th>Popularity</th>
+                    <th>Play</th>
                 </tr>
             </thead>
             <tbody>
@@ -113,13 +129,33 @@
                         <td>{{time duration_ms}}</td>
                         <td>{{id}}</td>
                         <td>{{popularity}}</td>
+                        <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
                     </tr>
             </tbody>
         </table>
     </script>
 
+    <script id="features-template" type="text/x-handlebars-template">
+        <h2>Track Features</h2>
+        <dl class="dl-horizontal">
+            <dt>Acousticness</dt><dd class="text-overflow">{{acousticness}}</dd>
+            <dt>Danceability</dt><dd class="text-overflow">{{danceability}}</dd>
+            <dt>Duration</dt><dd class="text-overflow">{{time duration_ms}}</dd>
+            <dt>Energy</dt><dd class="text-overflow">{{energy}}</dd>
+            <dt>Instrumentalness</dt><dd class="text-overflow">{{instrumentalness}}</dd>
+            <dt>Key</dt><dd class="text-overflow">{{key}}</dd>
+            <dt>Liveness</dt><dd class="text-overflow">{{liveness}}</dd>
+            <dt>Loudness</dt><dd class="text-overflow">{{loudness}}</dd>
+            <dt>Mode</dt><dd class="text-overflow">{{mode}}</dd>
+            <dt>Speechiness</dt><dd class="text-overflow">{{speechiness}}</dd>
+            <dt>Tempo</dt><dd class="text-overflow">{{tempo}}</dd>
+            <dt>Time Signature</dt><dd class="text-overflow">{{time_signature}}</dd>
+            <dt>Valence</dt><dd class="text-overflow">{{valence}}</dd>
+        </dl>
+    </script>
+
     <script id="tracks-template" type="text/x-handlebars-template">
-        <h2>Track Info</h2>
+        <h2>Tracks</h2>
         <table class="table table-condensed">
                 <thead>
                     <tr>
@@ -130,6 +166,7 @@
                         <th>Duration</th>
                         <th>Popularity</th>
                         <th>ID</th>
+                        <th>Play</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,6 +189,7 @@
                             <td>
                                 <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">{{id}}</button>
                             </td>
+                            <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
                         </tr>
                         {{/each}}
                 </tbody>
@@ -223,9 +261,12 @@
 
     <script id="playlistInfo-template" type="text/x-handlebars-template">
         <h2>Playlist Info</h2>
-        <dt>Name</dt><dd class="text-overflow">{{name}}</dd>
-        <dt>Owner</dt><dd class="text-overflow">{{owner}}</dd>
-        <dt>Description</dt><dd class="text-overflow">{{description}}</dd>
+        <dl>
+            <dt>Name</dt><dd class="text-overflow">{{name}}</dd>
+            <dt>Description</dt><dd class="text-overflow">{{description}}</dd>
+            <dt>Owner</dt><dd class="text-overflow">{{owner}}</dd>
+            <dt>Tracks</dt><dd class="text-overflow">{{tracks}}</dd>
+        </dl>
     </script>
 
     <script id="playlistTracks-template" type="text/x-handlebars-template">
@@ -238,6 +279,7 @@
                         <th>Album</th>
                         <th>Duration</th>
                         <th>Popularity</th>
+                        <th>Play</th>
                         <th>ID</th>
                         <th>Added</th>
                     </tr>
@@ -257,6 +299,10 @@
                             <td>{{time track.duration_ms}}</td>
                             <td>{{track.popularity}}</td>
                             <td>
+                                <img src="{{track.album.images.[2].url}}">
+                            </td>
+<!--                             <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{track.id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
+                            <td>
                                 <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">{{track.id}}</button>
                             </td>
                             <td>{{added_at}}</td>
@@ -266,23 +312,49 @@
             </table>
     </script>
 
-    <script id="features-template" type="text/x-handlebars-template">
-        <h2>Track Features</h2>
-        <dl class="dl-horizontal">
-            <dt>Acousticness</dt><dd class="text-overflow">{{acousticness}}</dd>
-            <dt>Danceability</dt><dd class="text-overflow">{{danceability}}</dd>
-            <dt>Duration</dt><dd class="text-overflow">{{time duration_ms}}</dd>
-            <dt>Energy</dt><dd class="text-overflow">{{energy}}</dd>
-            <dt>Instrumentalness</dt><dd class="text-overflow">{{instrumentalness}}</dd>
-            <dt>Key</dt><dd class="text-overflow">{{key}}</dd>
-            <dt>Liveness</dt><dd class="text-overflow">{{liveness}}</dd>
-            <dt>Loudness</dt><dd class="text-overflow">{{loudness}}</dd>
-            <dt>Mode</dt><dd class="text-overflow">{{mode}}</dd>
-            <dt>Speechiness</dt><dd class="text-overflow">{{speechiness}}</dd>
-            <dt>Tempo</dt><dd class="text-overflow">{{tempo}}</dd>
-            <dt>Time Signature</dt><dd class="text-overflow">{{time_signature}}</dd>
-            <dt>Valence</dt><dd class="text-overflow">{{valence}}</dd>
-        </dl>
+    <script id="libTracks-template" type="text/x-handlebars-template">
+        <div style="float:left"><h2>Your Songs</h2></div>
+        <div style="float:right">
+                <button class="btn btn-primary" type="button" onclick=""><</button>
+                <button class="btn btn-primary" type="button" onclick="">></button>
+        </div>
+        <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Artist</th>
+                        <th>Album</th>
+                        <th>Duration</th>
+                        <th>Popularity</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        {{#each objects}}
+                        <tr>
+                            <!-- <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{track.id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
+                            <td>
+                                <img src="{{track.album.images.[2].url}}">
+                            </td>
+                            <td>{{track.name}}</td>
+                            <td>
+                                {{#each track.artists}}
+                                    {{this.name}}
+                                {{/each}}
+                            </td>
+                            <td>
+                                {{track.album.name}}
+                            </td>
+                            <td>{{time track.duration_ms}}</td>
+                            <td>{{track.popularity}}</td>
+                            <td>
+                                <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
+                            </td>
+                        </tr>
+                        {{/each}}
+                </tbody>
+            </table>
     </script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
