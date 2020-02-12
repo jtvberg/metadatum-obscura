@@ -1,6 +1,5 @@
 //Event listener to execute API call on click
 //Track ids injected for testing if no value entered
-
 document.getElementById('execute-query').addEventListener('click', function () {
     var type = document.getElementById('inputGroupSelect01').value;
     var id = !document.getElementById('spotify-id').value ? '14KlyPJREBjS02AiIXCIqk%2C2LUGAmTUIgFyHPVWmFRzvw' : multiId(document.getElementById('spotify-id').value);
@@ -13,7 +12,6 @@ document.getElementById('execute-query').addEventListener('click', function () {
     }
     runQuery(buildUrl(type, id, uid), type);
 });
-
 //Build the API URL
 function buildUrl(type, id, uid) {
     var url = "https://api.spotify.com/v1/";
@@ -54,12 +52,10 @@ function buildUrl(type, id, uid) {
     }
     return url;
 }
-
 //Replace commas with HTML code, remove white space
 function multiId(input) {
     return input.replace(/ /g, "").replace(/,/g, "%2C");
 }
-
 //Hit Spotify API and return data object
 function runQuery(url, type) {
     console.log(url);
@@ -134,13 +130,17 @@ function parseObj(obj, type) {
             libTracks = null;
             break
         case 'tracks':
+        console.log(obj.tracks);
             if(!tracks) {
                 tracks = obj.tracks;
             } else {
                 for (i = 0; i < obj.tracks.length; i++) { 
-                    tracks.push(obj.tracks[i]);
+                    if(!checkDupe(obj.tracks[i].id)) {
+                        tracks.push(obj.tracks[i]);
+                    }
                 }
             }
+            console.log(tracks);
             source = $("#tracks-template").html();
             template = Handlebars.compile(source);
             placeholder.innerHTML = template({ objects: tracks });
@@ -250,7 +250,15 @@ function parseObj(obj, type) {
             break;
     }
 }
-
+//0Zt18U2PgV39wE4xTaXj2f
+var checkDupe = (val) => {
+    for (i = 0; i < tracks.length; i++) {
+        if (val === tracks[i].id) {
+            return true;
+        }
+    };
+    return false;
+}
 //Helper to convert milliseconds to mm:ss format
 Handlebars.registerHelper('time', function (millis) {
     var minutes = Math.floor(millis / 60000);
@@ -259,7 +267,6 @@ Handlebars.registerHelper('time', function (millis) {
         minutes + ":" + (seconds < 10 ? '0' : '') + seconds
     );
 });
-
 //Attached to buttons to grab spotify id
 var lookUpId = (val) => {
     document.getElementById('spotify-id').value = val.value;

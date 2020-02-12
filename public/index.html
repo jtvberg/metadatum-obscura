@@ -121,23 +121,59 @@
                 </tr>
             </thead>
             <tbody>
-                    <tr>
-                        <td><img class="someClass" src="{{img}}"></td>
-                        <td>{{name}}</td>
-                        <td>{{artist}}</td>
-                        <td>{{album}}</td>
-                        <td>{{time duration_ms}}</td>
-                        <td>{{id}}</td>
-                        <td>{{popularity}}</td>
-                        <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
-                    </tr>
+                <tr>
+                    <td><img class="someClass" src="{{img}}"></td>
+                    <td>{{name}}</td>
+                    <td>{{artist}}</td>
+                    <td>{{album}}</td>
+                    <td>{{time duration_ms}}</td>
+                    <td>{{id}}</td>
+                    <td>{{popularity}}</td>
+                    <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
+                </tr>
             </tbody>
         </table>
     </script>
 
     <script id="features-template" type="text/x-handlebars-template">
         <h2>Track Features</h2>
-        <dl class="dl-horizontal">
+        <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Acousticness</th>
+                        <th>Danceability</th>
+                        <th>Duration</th>
+                        <th>Energy</th>
+                        <th>Instrumentalness</th>
+                        <th>Key</th>
+                        <th>Liveness</th>
+                        <th>Loudness</th>
+                        <th>Mode</th>
+                        <th>Speechiness</th>
+                        <th>Tempo</th>
+                        <th>Time Signature</th>
+                        <th>Valence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{acousticness}}</td>
+                        <td>{{danceability}}</td>
+                        <td>{{time duration_ms}}</td>
+                        <td>{{energy}}</td>
+                        <td>{{instrumentalness}}</td>
+                        <td>{{key}}</td>
+                        <td>{{liveness}}</td>
+                        <td>{{loudness}}</td>
+                        <td>{{mode}}</td>
+                        <td>{{speechiness}}</td>
+                        <td>{{tempo}}</td>
+                        <td>{{time_signature}}</td>
+                        <td>{{valence}}</td>
+                    </tr>
+                </tbody>
+            </table>
+<!--         <dl class="dl-horizontal">
             <dt>Acousticness</dt><dd class="text-overflow">{{acousticness}}</dd>
             <dt>Danceability</dt><dd class="text-overflow">{{danceability}}</dd>
             <dt>Duration</dt><dd class="text-overflow">{{time duration_ms}}</dd>
@@ -151,7 +187,7 @@
             <dt>Tempo</dt><dd class="text-overflow">{{tempo}}</dd>
             <dt>Time Signature</dt><dd class="text-overflow">{{time_signature}}</dd>
             <dt>Valence</dt><dd class="text-overflow">{{valence}}</dd>
-        </dl>
+        </dl>-->
     </script>
 
     <script id="tracks-template" type="text/x-handlebars-template">
@@ -166,32 +202,31 @@
                         <th>Duration</th>
                         <th>Popularity</th>
                         <th>ID</th>
-                        <th>Play</th>
                     </tr>
                 </thead>
                 <tbody>
-                        {{#each objects}}
-                        <tr>
-                            <td>
-                                <img src="{{album.images.[2].url}}">
-                            </td>
-                            <td>{{name}}</td>
-                            <td>
-                                {{#each artists}}
-                                    {{this.name}}
-                                {{/each}}
-                            </td>
-                            <td>
-                                {{album.name}}
-                            </td>
-                            <td>{{time duration_ms}}</td>
-                            <td>{{popularity}}</td>
-                            <td>
-                                <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">{{id}}</button>
-                            </td>
-                            <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
-                        </tr>
-                        {{/each}}
+                    {{#each objects}}
+                    <tr>
+                        <td>
+                            <img src="{{album.images.[2].url}}">
+                        </td>
+                        <td>{{name}}</td>
+                        <td>
+                            {{#each artists}}
+                                {{this.name}}
+                            {{/each}}
+                        </td>
+                        <td>
+                            {{album.name}}
+                        </td>
+                        <td>{{time duration_ms}}</td>
+                        <td>{{popularity}}</td>
+                        <td>
+                            <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">Lookup</button>
+                        </td>
+                        <!-- <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
+                    </tr>
+                    {{/each}}
                 </tbody>
             </table>
     </script>
@@ -244,16 +279,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                            {{#each objects}}
-                            <tr>
-                                <td>
-                                    {{name}}
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary" type="button" value="{{id}}:{{owner.id}}" onclick="lookUpId({value})">{{id}}</button>
-                                </td>
-                            </tr>
-                            {{/each}}
+                        {{#each objects}}
+                        <tr>
+                            <td>
+                                {{name}}
+                            </td>
+                            <td>
+                                <button class="btn btn-primary" type="button" value="{{id}}:{{owner.id}}" onclick="lookUpId({value})">{{id}}</button>
+                            </td>
+                        </tr>
+                        {{/each}}
                     </tbody>
                 </table>
         </dl>
@@ -274,85 +309,81 @@
         <table class="table table-condensed">
                 <thead>
                     <tr>
+                        <th>Art</th>
                         <th>Name</th>
                         <th>Artist</th>
                         <th>Album</th>
                         <th>Duration</th>
                         <th>Popularity</th>
-                        <th>Play</th>
                         <th>ID</th>
                         <th>Added</th>
                     </tr>
                 </thead>
                 <tbody>
-                        {{#each objects}}
-                        <tr>
-                            <td>{{track.name}}</td>
-                            <td>
-                                {{#each track.artists}}
-                                    {{this.name}}
-                                {{/each}}
-                            </td>
-                            <td>
-                                {{track.album.name}}
-                            </td>
-                            <td>{{time track.duration_ms}}</td>
-                            <td>{{track.popularity}}</td>
-                            <td>
-                                <img src="{{track.album.images.[2].url}}">
-                            </td>
-<!--                             <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{track.id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
-                            <td>
-                                <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">{{track.id}}</button>
-                            </td>
-                            <td>{{added_at}}</td>
-                        </tr>
-                        {{/each}}
+                    {{#each objects}}
+                    <tr>
+                        <td>
+                            <img src="{{track.album.images.[2].url}}">
+                        </td>
+                        <td>{{track.name}}</td>
+                        <td>
+                            {{#each track.artists}}
+                                {{this.name}}
+                            {{/each}}
+                        </td>
+                        <td>
+                            {{track.album.name}}
+                        </td>
+                        <td>{{time track.duration_ms}}</td>
+                        <td>{{track.popularity}}</td>
+                        <td>
+                            <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
+                        </td>
+                        <td>{{added_at}}</td>
+                    </tr>
+                    {{/each}}
                 </tbody>
             </table>
     </script>
 
     <script id="libTracks-template" type="text/x-handlebars-template">
-        <div style="float:left"><h2>Your Songs</h2></div>
-        <div style="float:right">
-                <button class="btn btn-primary" type="button" onclick=""><</button>
-                <button class="btn btn-primary" type="button" onclick="">></button>
-        </div>
+        <h2>Your Songs</h2>
         <table class="table table-condensed">
                 <thead>
                     <tr>
-                        <th></th>
+                        <th>Art</th>
                         <th>Name</th>
                         <th>Artist</th>
                         <th>Album</th>
                         <th>Duration</th>
                         <th>Popularity</th>
                         <th>ID</th>
+                        <th>Added</th>
                     </tr>
                 </thead>
                 <tbody>
-                        {{#each objects}}
-                        <tr>
-                            <!-- <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{track.id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
-                            <td>
-                                <img src="{{track.album.images.[2].url}}">
-                            </td>
-                            <td>{{track.name}}</td>
-                            <td>
-                                {{#each track.artists}}
-                                    {{this.name}}
-                                {{/each}}
-                            </td>
-                            <td>
-                                {{track.album.name}}
-                            </td>
-                            <td>{{time track.duration_ms}}</td>
-                            <td>{{track.popularity}}</td>
-                            <td>
-                                <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
-                            </td>
-                        </tr>
-                        {{/each}}
+                    {{#each objects}}
+                    <tr>
+                        <td>
+                            <img src="{{track.album.images.[2].url}}">
+                        </td>
+                        <td>{{track.name}}</td>
+                        <td>
+                            {{#each track.artists}}
+                                {{this.name}}
+                            {{/each}}
+                        </td>
+                        <td>
+                            {{track.album.name}}
+                        </td>
+                        <td>{{time track.duration_ms}}</td>
+                        <td>{{track.popularity}}</td>
+                        <td>
+                            <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
+                        </td>
+                        <td>{{added_at}}</td>
+                    </tr>
+                    {{/each}}
                 </tbody>
             </table>
     </script>
