@@ -34,7 +34,10 @@ app.get('/login', function (req, res) {
   scope += 'user-read-birthdate '
   scope += 'user-read-recently-played '
   scope += 'playlist-read-collaborative '
-  scope += 'playlist-read-private'
+  scope += 'playlist-read-private '
+  scope += 'streaming '
+  scope += 'user-read-playback-state '
+  scope += 'user-modify-playback-state'
 
   res.redirect(
     'https://accounts.spotify.com/authorize?' +

@@ -292,3 +292,153 @@ var playById = (val) => {
 }
 
 var getPage = (val) => {}
+
+// Spotify Web Playback SDK functions
+function initializePlayer() {
+    if (!window.Spotify) {
+        console.error('Spotify SDK not loaded');
+        return;
+    }
+
+    player = new Spotify.Player({
+        name: 'Metadatum Obscura Player',
+        getOAuthToken: cb => { cb(token); },
+        volume: 0.5
+    });
+
+    // Error handling
+    player.addListener('initialization_error', ({ message }) => {
+        console.error('Failed to initialize:', message);
+    });
+
+    player.addListener('authentication_error', ({ message }) => {
+        console.error('Failed to authenticate:', message);
+    });
+
+    player.addListener('account_error', ({ message }) => {
+        console.error('Failed to validate Spotify account:', message);
+    });
+
+    player.addListener('playback_error', ({ message }) => {
+        console.error('Failed to perform playback:', message);
+    });
+
+    // Playback status updates
+    player.addListener('player_state_changed', state => {
+        if (!state) return;
+        
+        updatePlayerUI(state);
+        console.log('Player state changed:', state);
+    });
+
+    // Ready
+    player.addListener('ready', ({ device_id: id }) => {
+        console.log('Ready with Device ID', id);
+        device_id = id;
+        document.getElementById('device-status').textContent = `Connected to device: ${id}`;
+        document.getElementById('player-controls').style.display = 'block';
+    });
+
+    // Not Ready
+    player.addListener('not_ready', ({ device_id: id }) => {
+        console.log('Device ID has gone offline', id);
+        document.getElementById('device-status').textContent = 'Device offline';
+    });
+
+    // Connect to the player
+    player.connect().then(success => {
+        if (success) {
+            console.log('Successfully connected to Spotify!');
+        }
+    });
+}
+
+// Play a specific track
+function playTrack(trackId) {
+    if (!device_id) {
+        alert('Player not ready. Please wait for connection to Spotify.');
+        return;
+    }
+
+    fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            uris: [`spotify:track:${trackId}`]
+        })
+    }).then(response => {
+        if (response.ok) {
+            console.log('Track started playing');
+            // Update button states
+            updatePlayButtons(trackId);
+        } else {
+            console.error('Failed to play track:', response.status);
+            response.text().then(text => console.error('Error details:', text));
+        }
+    }).catch(error => {
+        console.error('Error playing track:', error);
+    });
+}
+
+// Toggle play/pause
+function togglePlayback() {
+    player.togglePlay().then(() => {
+        console.log('Toggled playback');
+    });
+}
+
+// Previous track
+function previousTrack() {
+    player.previousTrack().then(() => {
+        console.log('Skipped to previous track');
+    });
+}
+
+// Next track
+function nextTrack() {
+    player.nextTrack().then(() => {
+        console.log('Skipped to next track');
+    });
+}
+
+// Update player UI
+function updatePlayerUI(state) {
+    const track = state.track_window.current_track;
+    const isPlaying = !state.paused;
+    
+    // Update current track info
+    document.getElementById('current-track-info').innerHTML = `
+        <strong>${track.name}</strong><br>
+        <small>${track.artists.map(artist => artist.name).join(', ')} • ${track.album.name}</small>
+    `;
+    
+    // Update play/pause button
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const icon = playPauseBtn.querySelector('i');
+    if (isPlaying) {
+        icon.className = 'fa fa-pause';
+    } else {
+        icon.className = 'fa fa-play';
+    }
+}
+
+// Update play button states
+function updatePlayButtons(currentTrackId) {
+    // Reset all play buttons
+    document.querySelectorAll('[id^="play-btn-"]').forEach(btn => {
+        btn.innerHTML = '<i class="fa fa-play"></i>';
+        btn.className = 'btn btn-success';
+    });
+    
+    // Update current playing button
+    const currentBtn = document.getElementById(`play-btn-${currentTrackId}`);
+    if (currentBtn) {
+        currentBtn.innerHTML = '<i class="fa fa-pause"></i>';
+        currentBtn.className = 'btn btn-warning';
+    }
+}
+
+window.onSpotifyWebPlaybackSDKReady = () => {};

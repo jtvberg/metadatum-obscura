@@ -51,6 +51,8 @@
           country = response.country
           token = access_token
           console.log(response)
+
+          initializePlayer()
         },
       })
     } else {

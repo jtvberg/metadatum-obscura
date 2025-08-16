@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
     <link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="main.css">
     <title>Metadatum Obscura</title>
 </head>
@@ -52,6 +53,30 @@
                 </div>
             </div>
             <div id="resultsHeader">
+            </div>
+            <div id="player-controls" style="display:none;">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Now Playing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="current-track-info"></div>
+                        <div class="btn-group mt-2" role="group">
+                            <button class="btn btn-secondary" onclick="previousTrack()">
+                                <i class="fa fa-step-backward"></i>
+                            </button>
+                            <button class="btn btn-primary" onclick="togglePlayback()" id="play-pause-btn">
+                                <i class="fa fa-play"></i>
+                            </button>
+                            <button class="btn btn-secondary" onclick="nextTrack()">
+                                <i class="fa fa-step-forward"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <small id="device-status" class="text-muted"></small>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="results">
             </div>
@@ -111,7 +136,11 @@
                     <td>{{time duration_ms}}</td>
                     <td>{{id}}</td>
                     <td>{{popularity}}</td>
-                    <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td>
+                    <td>
+                        <button class="btn btn-success" type="button" onclick="playTrack('{{id}}')" id="play-btn-{{id}}">
+                            <i class="fa fa-play"></i> Play
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -169,6 +198,7 @@
                         <th>Duration</th>
                         <th>Popularity</th>
                         <th>ID</th>
+                        <th>Play</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -191,7 +221,11 @@
                         <td>
                             <button class="btn btn-primary" type="button" value="{{id}}" onclick="lookUpId({value})">Lookup</button>
                         </td>
-                        <!-- <td><iframe src="https://open.spotify.com/embed?uri=spotify:track:{{id}}" width="80" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></td> -->
+                        <td>
+                            <button class="btn btn-success" type="button" onclick="playTrack('{{id}}')" id="play-btn-{{id}}">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -284,6 +318,7 @@
                         <th>Popularity</th>
                         <th>ID</th>
                         <th>Added</th>
+                        <th>Play</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -307,6 +342,11 @@
                             <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
                         </td>
                         <td>{{added_at}}</td>
+                        <td>
+                            <button class="btn btn-success" type="button" onclick="playTrack('{{track.id}}')" id="play-btn-{{track.id}}">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -326,6 +366,7 @@
                         <th>Popularity</th>
                         <th>ID</th>
                         <th>Added</th>
+                        <th>Play</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -349,6 +390,11 @@
                             <button class="btn btn-primary" type="button" value="{{track.id}}" onclick="lookUpId({value})">Lookup</button>
                         </td>
                         <td>{{added_at}}</td>
+                        <td>
+                            <button class="btn btn-success" type="button" onclick="playTrack('{{track.id}}')" id="play-btn-{{track.id}}">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -362,9 +408,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="auth.js"></script>
     <script type='text/javascript'>
-        var userid, token, country;
+        var userid, token, country, player, device_id;
     </script>
     <script src="api.js"></script>
 </body>
