@@ -80,7 +80,7 @@ function runQuery(url, type) {
         })
 }
 
-var next, tracks, playlists, playlistTracks, libTracks
+var next, tracks, playlists, playlistTracks, libTracks, currentPlaylist = [], currentTrackIndex = -1
 //Parse data object into handlebars template
 function parseObj(obj, type) {
     var placeholderHeader = document.getElementById('resultsHeader')
@@ -325,10 +325,24 @@ function initializePlayer() {
 
     // Playback status updates
     player.addListener('player_state_changed', state => {
-        if (!state) return;
+        if (!state) {
+            // When state is null, playback has ended
+            resetAllPlayButtons();
+            return;
+        }
         
         updatePlayerUI(state);
         console.log('Player state changed:', state);
+        
+        // Update play buttons based on current track
+        if (state.track_window.current_track) {
+            const currentTrackId = state.track_window.current_track.id;
+            if (state.paused) {
+                resetAllPlayButtons();
+            } else {
+                updatePlayButtons(currentTrackId);
+            }
+        }
     });
 
     // Ready
@@ -354,10 +368,32 @@ function initializePlayer() {
 }
 
 // Play a specific track
-function playTrack(trackId) {
+function playTrack(trackId, playlistContext = null) {
     if (!device_id) {
         alert('Player not ready. Please wait for connection to Spotify.');
         return;
+    }
+
+    // Set up playlist context for next/previous functionality
+    if (playlistContext) {
+        currentPlaylist = playlistContext;
+        currentTrackIndex = currentPlaylist.findIndex(track => {
+            // Handle different data structures
+            const id = track.id || (track.track && track.track.id);
+            return id === trackId;
+        });
+    } else {
+        // Try to find the track in existing data
+        if (tracks) {
+            currentPlaylist = tracks;
+            currentTrackIndex = tracks.findIndex(track => track.id === trackId);
+        } else if (playlistTracks) {
+            currentPlaylist = playlistTracks;
+            currentTrackIndex = playlistTracks.findIndex(item => item.track.id === trackId);
+        } else if (libTracks) {
+            currentPlaylist = libTracks;
+            currentTrackIndex = libTracks.findIndex(item => item.track.id === trackId);
+        }
     }
 
     fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
@@ -372,7 +408,6 @@ function playTrack(trackId) {
     }).then(response => {
         if (response.ok) {
             console.log('Track started playing');
-            // Update button states
             updatePlayButtons(trackId);
         } else {
             console.error('Failed to play track:', response.status);
@@ -392,20 +427,49 @@ function togglePlayback() {
 
 // Previous track
 function previousTrack() {
-    player.previousTrack().then(() => {
-        console.log('Skipped to previous track');
-    });
+    if (currentPlaylist.length === 0 || currentTrackIndex <= 0) {
+        console.log('No previous track available');
+        return;
+    }
+    
+    currentTrackIndex--;
+    const prevTrack = currentPlaylist[currentTrackIndex];
+    const trackId = prevTrack.id || (prevTrack.track && prevTrack.track.id);
+    
+    if (trackId) {
+        playTrack(trackId, currentPlaylist);
+    }
 }
 
 // Next track
 function nextTrack() {
-    player.nextTrack().then(() => {
-        console.log('Skipped to next track');
-    });
+    if (currentPlaylist.length === 0 || currentTrackIndex >= currentPlaylist.length - 1) {
+        console.log('No next track available');
+        return;
+    }
+    
+    currentTrackIndex++;
+    const nextTrack = currentPlaylist[currentTrackIndex];
+    const trackId = nextTrack.id || (nextTrack.track && nextTrack.track.id);
+    
+    if (trackId) {
+        playTrack(trackId, currentPlaylist);
+    }
 }
 
 // Update player UI
 function updatePlayerUI(state) {
+    if (!state || !state.track_window || !state.track_window.current_track) {
+        // Clear the current track info when no track is playing
+        document.getElementById('current-track-info').innerHTML = '<small class="text-muted">No track playing</small>';
+        
+        // Update play/pause button to play state
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const icon = playPauseBtn.querySelector('i');
+        icon.className = 'fa fa-play';
+        return;
+    }
+
     const track = state.track_window.current_track;
     const isPlaying = !state.paused;
     
@@ -423,21 +487,43 @@ function updatePlayerUI(state) {
     } else {
         icon.className = 'fa fa-play';
     }
+    
+    // Update next/previous button states
+    updateNavigationButtons();
 }
 
-// Update play button states
-function updatePlayButtons(currentTrackId) {
-    // Reset all play buttons
+// Reset all play buttons to play state
+function resetAllPlayButtons() {
     document.querySelectorAll('[id^="play-btn-"]').forEach(btn => {
         btn.innerHTML = '<i class="fa fa-play"></i>';
         btn.className = 'btn btn-success';
     });
+}
+
+// Update play button states
+function updatePlayButtons(currentTrackId) {
+    // Reset all play buttons first
+    resetAllPlayButtons();
     
     // Update current playing button
     const currentBtn = document.getElementById(`play-btn-${currentTrackId}`);
     if (currentBtn) {
         currentBtn.innerHTML = '<i class="fa fa-pause"></i>';
         currentBtn.className = 'btn btn-warning';
+    }
+}
+
+// Update next/previous button states based on current position
+function updateNavigationButtons() {
+    const prevBtn = document.querySelector('button[onclick="previousTrack()"]');
+    const nextBtn = document.querySelector('button[onclick="nextTrack()"]');
+    
+    if (prevBtn) {
+        prevBtn.disabled = (currentPlaylist.length === 0 || currentTrackIndex <= 0);
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = (currentPlaylist.length === 0 || currentTrackIndex >= currentPlaylist.length - 1);
     }
 }
 
